@@ -1,0 +1,31 @@
+services:
+  menu-service:
+    build: .
+    container_name: menu-service
+    command: node menu-service.js
+    ports:
+      - "3001:3001"
+
+  orders-service:
+    build: .
+    container_name: orders-service
+    command: node orders-service.js
+    environment:
+      - MENU_SERVICE_URL=http://menu-service:3001
+    ports:
+      - "3002:3002"
+    depends_on:
+      - menu-service
+
+  api-gateway:
+    build: .
+    container_name: api-gateway
+    command: node api-gateway.js
+    environment:
+      - MENU_SERVICE_URL=http://menu-service:3001
+      - ORDERS_SERVICE_URL=http://orders-service:3002
+    ports:
+      - "3000:3000"
+    depends_on:
+      - menu-service
+      - orders-service

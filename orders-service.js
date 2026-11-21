@@ -6,6 +6,8 @@ app.use(express.json());
 const PORT = 3002;
 const MENU_SERVICE_URL = process.env.MENU_SERVICE_URL || 'http://localhost:3001';
 
+const ALLOWED_STATUSES = ['Received', 'Preparing', 'Ready', 'Delivered', 'Cancelled'];
+
 const orders = [
   {
     id: 101,
@@ -19,18 +21,16 @@ const orders = [
 
 let nextId = 102;
 
-// Get all orders
 app.get('/orders', (req, res) => {
   res.json(orders);
 });
 
-// Get order by id + fetch dish info from menu-service
 app.get('/orders/:id', async (req, res) => {
   const id = parseInt(req.params.id);
   const order = orders.find(o => o.id === id);
 
   if (!order) {
-    return res.status(404).json({ error: 'Order not found' });
+    return res.status(404).json({ error: 'Brak zamowienia' });
   }
 
   try {
@@ -47,25 +47,24 @@ app.get('/orders/:id', async (req, res) => {
     });
   } catch (error) {
     console.error('Error connecting to menu-service:', error.message);
-    res.status(500).json({ error: 'Menu service is unavailable' });
+    res.status(500).json({ error: 'Menu jest niedostepne' });
   }
 });
 
-// Create a new order
 app.post('/orders', async (req, res) => {
   const customerName = req.body.customerName;
   const menuItemId = req.body.menuItemId;
   const quantity = parseInt(req.body.quantity) || 1;
 
   if (!customerName || !menuItemId) {
-    return res.status(400).json({ error: 'customerName and menuItemId are required' });
+    return res.status(400).json({ error: 'imie i id produktu jest wymagane' });
   }
 
   try {
     const response = await fetch(`${MENU_SERVICE_URL}/menu/${menuItemId}`);
 
     if (!response.ok) {
-      return res.status(404).json({ error: 'Dish does not exist' });
+      return res.status(404).json({ error: 'danie nie istnieje' });
     }
 
     const dish = await response.json();
@@ -92,10 +91,30 @@ app.post('/orders', async (req, res) => {
     });
   } catch (error) {
     console.error('Error connecting to menu-service:', error.message);
-    res.status(500).json({ error: 'Could not place order because menu service is down' });
+    res.status(500).json({ error: 'nie mozna zlozyc zamowienia z powodu bledu systemu' });
   }
 });
 
+app.patch('/orders/:id/status', (req, res) => {
+  const id = parseInt(req.params.id);
+  const order = orders.find(o => o.id === id);
+
+  if (!order) {
+    return res.status(404).json({ error: 'Zamowienie nie znalezione' });
+  }
+
+  const { status } = req.body;
+
+  if (!status || !ALLOWED_STATUSES.includes(status)) {
+    return res.status(400).json({
+      error: `Invalid status. Allowed values: ${ALLOWED_STATUSES.join(', ')}`
+    });
+  }
+
+  order.status = status;
+  res.json(order);
+});
+
 app.listen(PORT, () => {
-  console.log(`Orders service listening on port ${PORT}`);
+  console.log(`Orders service slucha ${PORT}`);
 });

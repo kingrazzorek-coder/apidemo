@@ -10,23 +10,21 @@ const menu = [
   { id: 4, name: 'Szarlotka', price: 10, prepTime: '5 min' }
 ];
 
-// Get full menu
 app.get('/menu', (req, res) => {
   res.json(menu);
 });
 
-// Get single dish by id
 app.get('/menu/:id', (req, res) => {
   const id = parseInt(req.params.id);
   const item = menu.find(m => m.id === id);
 
   if (!item) {
-    return res.status(404).json({ error: 'Menu item not found' });
+    return res.status(404).json({ error: 'Brak takiego produktu' });
   }
 
   res.json(item);
 });
 
 app.listen(PORT, () => {
-  console.log(`Menu service listening on port ${PORT}`);
+  console.log(`Menu service slucha ${PORT}`);
 });

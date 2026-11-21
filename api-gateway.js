@@ -11,14 +11,13 @@ app.get('/', (req, res) => {
   res.send('Restaurant API Gateway is running');
 });
 
-// Forward menu requests
 app.get('/api/menu', async (req, res) => {
   try {
     const response = await fetch(`${MENU_SERVICE_URL}/menu`);
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error) {
-    res.status(500).json({ error: 'Menu service is down' });
+    res.status(500).json({ error: 'Menu nie jest dostepne' });
   }
 });
 
@@ -28,18 +27,17 @@ app.get('/api/menu/:id', async (req, res) => {
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error) {
-    res.status(500).json({ error: 'Menu service is down' });
+    res.status(500).json({ error: 'Menu nie jest dostepne' });
   }
 });
 
-// Forward order requests
 app.get('/api/orders', async (req, res) => {
   try {
     const response = await fetch(`${ORDERS_SERVICE_URL}/orders`);
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error) {
-    res.status(500).json({ error: 'Orders service is down' });
+    res.status(500).json({ error: 'Zamowienia nie sa dostepne' });
   }
 });
 
@@ -49,7 +47,7 @@ app.get('/api/orders/:id', async (req, res) => {
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error) {
-    res.status(500).json({ error: 'Orders service is down' });
+    res.status(500).json({ error: 'Zamowienia nie sa dostepne' });
   }
 });
 
@@ -63,10 +61,23 @@ app.post('/api/orders', async (req, res) => {
     const data = await response.json();
     res.status(response.status).json(data);
   } catch (error) {
-    res.status(500).json({ error: 'Orders service is down' });
+    res.status(500).json({ error: 'Zamowienia nie sa dostepne' });
+  }
+});
+app.patch('/api/orders/:id/status', async (req, res) => {
+  try {
+    const response = await fetch(`${ORDERS_SERVICE_URL}/orders/${req.params.id}/status`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(req.body)
+    });
+    const data = await response.json();
+    res.status(response.status).json(data);
+  } catch (error) {
+    res.status(500).json({ error: 'Zamowienia nie sa dostepne' });
   }
 });
 
 app.listen(PORT, () => {
-  console.log(`API Gateway listening on port ${PORT}`);
+  console.log(`API Gateway slucha port ${PORT}`);
 });
